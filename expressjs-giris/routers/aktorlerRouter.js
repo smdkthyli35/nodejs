@@ -1,45 +1,59 @@
-const router = require('express').Router();
+const router = require("express").Router();
 
-let data = require('../data.js');
+let data = require("../data.js");
 
 router.get("/", (req, res) => {
-    res.status(200).json(data);
+  res.status(200).json(data);
 });
 
 let next_id = 4;
 
-router.post("/", (req, res) => {
-    let yeni_aktor = req.body;
+router.post("/", (req, res, next) => {
+  let yeni_aktor = req.body;
+
+  if (!yeni_aktor.isim) {
+    //Error handling
+    next({
+      statusCode: 400,
+      errorMessage: "Aktor eklemek icin isim girmelisiniz.",
+    });
+  } else if (yeni_aktor.isim && !yeni_aktor.filmler) {
+    next({
+        statusCode: 400,
+        errorMessage: "Aktor eklemek icin bir film adi girmelisiniz.",
+    });
+  } else {
     yeni_aktor.id = next_id;
     next_id++;
     data.push(yeni_aktor);
     res.status(201).json(yeni_aktor);
+  }
 });
 
-router.delete("/:id" ,(req, res) => {
-    const silinecek_aktor_id = req.params.id;
-    const silinecek_aktor = data.find(aktor => aktor.id === Number(silinecek_aktor_id));
+router.delete("/:id", (req, res) => {
+  const silinecek_aktor_id = req.params.id;
+  const silinecek_aktor = data.find(
+    (aktor) => aktor.id === Number(silinecek_aktor_id)
+  );
 
-    if(silinecek_aktor) {
-        data = data.filter(aktor => aktor.id !== Number(silinecek_aktor_id));
-        res.status(204).end();
-    }
-    else{
-        res.status(404).json({errorMessage: "Silmeye calistiginiz aktor bulunamadi."});
-    }
-    
+  if (silinecek_aktor) {
+    data = data.filter((aktor) => aktor.id !== Number(silinecek_aktor_id));
+    res.status(204).end();
+  } else {
+    res
+      .status(404)
+      .json({ errorMessage: "Silmeye calistiginiz aktor bulunamadi." });
+  }
 });
 
 router.get("/:id", (req, res) => {
-    const { id } = req.params;
-    const aktor = data.find((aktor) => aktor.id === parseInt(id));
-    if(aktor) {
-        res.status(200).json(aktor);
-    } else {
-        res.status(404).send('Aradiginiz aktor bulunamadi.');
-    }
+  const { id } = req.params;
+  const aktor = data.find((aktor) => aktor.id === parseInt(id));
+  if (aktor) {
+    res.status(200).json(aktor);
+  } else {
+    res.status(404).send("Aradiginiz aktor bulunamadi.");
+  }
 });
 
-
 module.exports = router;
-
